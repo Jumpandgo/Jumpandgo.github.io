@@ -29,7 +29,7 @@ window.onload = function () {
   const GRAVITY = 0.7;
   const FRICTION = 0.8;
   const PLAYER_SPEED = 2.5;
-  const JUMP_POWER = 10;
+  const JUMP_POWER = 10; // Higher jump
 
   // Key states
   const keys = {};
@@ -38,21 +38,21 @@ window.onload = function () {
   const levels = [
     {
       platforms: [
-        { x: 0, y: 180, w: 400, h: 20 },
-        { x: 40, y: 140, w: 40, h: 8 },
-        { x: 100, y: 100, w: 50, h: 8 },
-        { x: 220, y: 120, w: 40, h: 8 },
-        { x: 320, y: 80, w: 40, h: 8 },
+        { x: 0, y: 190, w: 400, h: 10 },
+        { x: 40, y: 160, w: 40, h: 8 },
+        { x: 100, y: 130, w: 50, h: 8 },
+        { x: 220, y: 110, w: 40, h: 8 },
+        { x: 320, y: 90, w: 40, h: 8 },
       ],
-      playerStart: { x: 30, y: 120 },
+      playerStart: { x: 30, y: 145 },
       enemies: [
-        { x: 120, y: 92, w: 12, h: 12, dx: 1.2, dir: 1 },
-        { x: 280, y: 68, w: 12, h: 12, dx: -1.2, dir: -1 }
+        { x: 120, y: 122, w: 12, h: 12, dx: 1.2, dir: 1 },
+        { x: 280, y: 82, w: 12, h: 12, dx: -1.2, dir: -1 }
       ],
-      goal: { x: 370, y: 70, w: 16, h: 16 },
+      goal: { x: 370, y: 80, w: 16, h: 16 },
       checkpoints: [
-        { x: 105, y: 92, w: 10, h: 10 },
-        { x: 325, y: 72, w: 10, h: 10 }
+        { x: 105, y: 122, w: 10, h: 10 },
+        { x: 325, y: 82, w: 10, h: 10 }
       ]
     },
     // ... More levels can be added here ...
@@ -60,7 +60,6 @@ window.onload = function () {
 
   let currentLevel = 0;
 
-  // Game state
   let platforms, player, enemies, goal, checkpoints;
   let activeCheckpoint = null;
 
@@ -102,7 +101,6 @@ window.onload = function () {
     gameStarted = true;
   };
 
-  // Game loop state
   let win = false, death = false, levelTimer = 0;
 
   function update() {
@@ -172,7 +170,7 @@ window.onload = function () {
       player.dy = -JUMP_POWER;
       player.jumping = true;
       player.grounded = false;
-      player.stamina -= 3; // cost for jump
+      player.stamina -= 3;
       if (player.stamina < 0) player.stamina = 0;
     }
 
@@ -267,67 +265,121 @@ window.onload = function () {
 
   // --- Pixel Art Drawing Helpers ---
   function drawPixelBlock(x, y, size, colors) {
+    // Modern pixel look: gradients & outline
     for (let py = 0; py < 8; py++) {
       for (let px = 0; px < 8; px++) {
         ctx.fillStyle = colors[py][px];
         ctx.fillRect(x + px, y + py, 1, 1);
       }
     }
+    // Outline
+    ctx.strokeStyle = "#333";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x, y, 8, 8);
+    // Glossy effect (semi-transparent white highlight)
+    ctx.globalAlpha = 0.17;
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(x, y, 8, 3);
+    ctx.globalAlpha = 1;
   }
 
   function playerArt() {
-    const c = "#3498db", o = "#222", w = "#fff";
+    // Gradient blue, modern pixel look
+    const gradient = [
+      "#77aaff","#6ca8ea","#5b95d7","#4881c4",
+      "#3571b0","#255fa3","#154e95","#0b3c7b"
+    ];
+    const o = "#222", w = "#fff";
     return [
-      [o,o,o,o,o,o,o,o],
-      [o,c,c,c,c,c,c,o],
-      [o,c,w,o,o,w,c,o],
-      [o,c,o,o,o,o,c,o],
-      [o,c,c,c,c,c,c,o],
-      [o,c,c,c,c,c,c,o],
-      [o,c,c,c,c,c,c,o],
+      [o,gradient[0],gradient[0],gradient[1],gradient[1],gradient[0],gradient[0],o],
+      [o,gradient[2],gradient[3],gradient[4],gradient[4],gradient[3],gradient[2],o],
+      [o,gradient[3],w,o,o,w,gradient[3],o],
+      [o,gradient[4],o,o,o,o,gradient[4],o],
+      [o,gradient[5],gradient[5],gradient[6],gradient[6],gradient[5],gradient[5],o],
+      [o,gradient[6],gradient[7],gradient[7],gradient[7],gradient[7],gradient[6],o],
+      [o,gradient[7],gradient[7],gradient[7],gradient[7],gradient[7],gradient[7],o],
       [o,o,o,o,o,o,o,o],
     ];
   }
 
   function drawEnemy(x, y) {
-    ctx.fillStyle = "#e74c3c";
+    // Modern triangle with gradient and angry face
+    let grad = ctx.createLinearGradient(x, y, x+12, y+12);
+    grad.addColorStop(0, "#e74c3c");
+    grad.addColorStop(1, "#7b1c14");
+    ctx.fillStyle = grad;
     ctx.beginPath();
-    ctx.moveTo(x + 6, y); // top
-    ctx.lineTo(x, y + 12); // bottom left
-    ctx.lineTo(x + 12, y + 12); // bottom right
+    ctx.moveTo(x + 6, y);
+    ctx.lineTo(x, y + 12);
+    ctx.lineTo(x + 12, y + 12);
     ctx.closePath();
     ctx.fill();
+    // Outline
+    ctx.strokeStyle = "#222";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // Face
     ctx.fillStyle = "#222";
-    ctx.fillRect(x + 4, y + 5, 1, 2); // left eye
-    ctx.fillRect(x + 7, y + 5, 1, 2); // right eye
-    ctx.fillRect(x + 4, y + 9, 5, 1); // mouth
-    ctx.fillRect(x + 4, y + 8, 1, 1); // mouth left
-    ctx.fillRect(x + 8, y + 8, 1, 1); // mouth right
+    ctx.fillRect(x + 4, y + 5, 1, 2);
+    ctx.fillRect(x + 7, y + 5, 1, 2);
+    ctx.fillRect(x + 4, y + 9, 5, 1);
+    ctx.fillRect(x + 4, y + 8, 1, 1);
+    ctx.fillRect(x + 8, y + 8, 1, 1);
+    // Glossy
+    ctx.globalAlpha = 0.14;
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.moveTo(x + 2, y + 5);
+    ctx.lineTo(x + 6, y + 2);
+    ctx.lineTo(x + 10, y + 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 1;
   }
 
-  function drawPixelMountain(x, y, w, h, color) {
-    ctx.fillStyle = color;
+  function drawPixelMountain(x, y, w, h, color1, color2) {
+    // Modern pixel mountain: gradient color, pixel steps
+    let grad = ctx.createLinearGradient(x, y, x, y+h);
+    grad.addColorStop(0, color1);
+    grad.addColorStop(1, color2);
+    ctx.fillStyle = grad;
     let step = 8;
     for (let i = 0; i < w; i += step) {
       let height = h - Math.floor(Math.random() * (h / 3));
       ctx.fillRect(x + i, y + h - height, step, height);
+      // Pixel "shine" on random steps
+      if (Math.random() < 0.2) {
+        ctx.fillStyle = "rgba(255,255,255,0.25)";
+        ctx.fillRect(x + i, y + h - height, step, 3);
+        ctx.fillStyle = grad;
+      }
     }
   }
 
   function drawGoal(goal) {
-    ctx.fillStyle = "#ffe066";
+    // Modern goal: golden gradient block with "trophy shine"
+    let grad = ctx.createLinearGradient(goal.x, goal.y, goal.x, goal.y+goal.h);
+    grad.addColorStop(0, "#ffe066");
+    grad.addColorStop(1, "#d9af37");
+    ctx.fillStyle = grad;
     ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
-    ctx.fillStyle = "#d9af37";
-    ctx.fillRect(goal.x + 6, goal.y + 4, 4, 1);
-    ctx.fillRect(goal.x + 7, goal.y + 5, 2, 2);
-    ctx.fillRect(goal.x + 7, goal.y + 8, 2, 2);
+    ctx.strokeStyle = "#b8892d";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(goal.x, goal.y, goal.w, goal.h);
+    // Shine
+    ctx.globalAlpha = 0.23;
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(goal.x+3, goal.y+2, 10, 3);
+    ctx.globalAlpha = 1;
   }
 
   function drawCheckpoint(cp, active) {
-    ctx.fillStyle = active ? "#00ff00" : "#999";
+    ctx.fillStyle = active ? "#00ff00" : "#aaa";
     ctx.fillRect(cp.x, cp.y, cp.w, cp.h);
+    // Pole
     ctx.fillStyle = "#222";
-    ctx.fillRect(cp.x + 2, cp.y + cp.h - 2, 2, 2); // pole
+    ctx.fillRect(cp.x + 2, cp.y + cp.h - 2, 2, 2);
+    // Flag
     ctx.fillStyle = active ? "#00ff00" : "#fff";
     ctx.beginPath();
     ctx.moveTo(cp.x + 4, cp.y + 2);
@@ -335,12 +387,15 @@ window.onload = function () {
     ctx.lineTo(cp.x + 4, cp.y + 6);
     ctx.closePath();
     ctx.fill();
+    // Shine
+    ctx.globalAlpha = 0.18;
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(cp.x+2, cp.y+2, 6, 2);
+    ctx.globalAlpha = 1;
   }
 
-  // Draw the UI bars (health, stamina)
   function drawBars() {
     uiLayer.innerHTML = "";
-    // Health bar
     let barW = 150, barH = 20, px = 20, py = 20;
     let healthRatio = player.health / PLAYER_MAX_HEALTH;
     let staminaRatio = player.stamina / PLAYER_MAX_STAMINA;
@@ -352,11 +407,11 @@ window.onload = function () {
     healthBar.style.top = py + "px";
     healthBar.style.width = barW + "px";
     healthBar.style.height = barH + "px";
-    healthBar.style.background = "#222";
+    healthBar.style.background = "linear-gradient(90deg,#222,#b71c1c)";
     healthBar.style.border = "3px solid #c62828";
     healthBar.style.borderRadius = "8px";
     healthBar.style.boxShadow = "0 2px 0 #a31515";
-    healthBar.innerHTML = `<div style="width:${Math.floor(barW*healthRatio)}px;height:${barH-6}px;background:#e74c3c;border-radius:5px;margin:3px;"></div>
+    healthBar.innerHTML = `<div style="width:${Math.floor(barW*healthRatio)}px;height:${barH-6}px;background:linear-gradient(90deg,#e74c3c,#ff8a65);border-radius:5px;margin:3px;"></div>
       <div style="position:absolute;left:0;top:0;width:100%;height:100%;color:#fff;font-family:'VT323',monospace;font-size:18px;line-height:${barH}px;text-align:center;pointer-events:none;">HEALTH</div>`;
     uiLayer.appendChild(healthBar);
 
@@ -367,30 +422,35 @@ window.onload = function () {
     staminaBar.style.top = (py+barH+8) + "px";
     staminaBar.style.width = barW + "px";
     staminaBar.style.height = barH + "px";
-    staminaBar.style.background = "#222";
+    staminaBar.style.background = "linear-gradient(90deg,#222,#1b5e20)";
     staminaBar.style.border = "3px solid #2e7d32";
     staminaBar.style.borderRadius = "8px";
     staminaBar.style.boxShadow = "0 2px 0 #1c4a1c";
-    staminaBar.innerHTML = `<div style="width:${Math.floor(barW*staminaRatio)}px;height:${barH-6}px;background:#66bb6a;border-radius:5px;margin:3px;"></div>
+    staminaBar.innerHTML = `<div style="width:${Math.floor(barW*staminaRatio)}px;height:${barH-6}px;background:linear-gradient(90deg,#66bb6a,#b2ff59);border-radius:5px;margin:3px;"></div>
       <div style="position:absolute;left:0;top:0;width:100%;height:100%;color:#fff;font-family:'VT323',monospace;font-size:18px;line-height:${barH}px;text-align:center;pointer-events:none;">STAMINA</div>`;
     uiLayer.appendChild(staminaBar);
   }
 
-  // Rendering
   function draw() {
-    ctx.fillStyle = "#222";
-    ctx.fillRect(0, 0, pixelWidth, pixelHeight);
+    ctx.clearRect(0, 0, pixelWidth, pixelHeight);
 
-    drawPixelMountain(0, 120, pixelWidth, 60, "#8e8686");
-    drawPixelMountain(0, 140, pixelWidth, 40, "#c7b7a6");
-    drawPixelMountain(0, 170, pixelWidth, 25, "#e4ddcb");
+    drawPixelMountain(0, 130, pixelWidth, 60, "#a1c4fd","#c2e9fb");
+    drawPixelMountain(0, 160, pixelWidth, 40, "#b7dfb7","#f7ffae");
+    drawPixelMountain(0, 180, pixelWidth, 25, "#ffe07c","#fffde4");
 
-    ctx.fillStyle = "#5d4037";
+    // Modern platforms: gradient, rounded
     for (let plat of platforms) {
-      ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
-      ctx.strokeStyle = "#333";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(plat.x, plat.y, plat.w, plat.h);
+      let grad = ctx.createLinearGradient(plat.x, plat.y, plat.x, plat.y+plat.h);
+      grad.addColorStop(0, "#5d4037");
+      grad.addColorStop(1, "#a1887f");
+      ctx.fillStyle = grad;
+      roundRect(ctx, plat.x, plat.y, plat.w, plat.h, 3, true, true);
+
+      // Pixel shine
+      ctx.globalAlpha = 0.18;
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(plat.x, plat.y, plat.w, 3);
+      ctx.globalAlpha = 1;
     }
 
     drawGoal(goal);
@@ -430,7 +490,23 @@ window.onload = function () {
     drawBars();
   }
 
-  // Draw menu
+  // Modern rounded rectangle function
+  function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    if (fill) ctx.fill();
+    if (stroke) ctx.stroke();
+  }
+
   function drawMenu() {
     ctx.fillStyle = "#222";
     ctx.fillRect(0, 0, pixelWidth, pixelHeight);
