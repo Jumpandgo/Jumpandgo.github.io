@@ -6,9 +6,6 @@
     body { margin: 0; overflow: hidden; background: #222; }
     canvas { display: block; margin: 0 auto; background: #222; box-shadow: 0 0 16px #aaa; }
     #ui-layer {
-      position: absolute;
-      left: 0; top: 0;
-      width: 100vw; height: 100vh;
       pointer-events: none;
       z-index: 10;
     }
@@ -24,6 +21,7 @@
       pointer-events: auto;
       z-index: 100;
     }
+    #start-screen[hidden] { display: none; }
     #start-screen h1 {
       color: #ffe066;
       font-family: 'VT323', monospace;
@@ -51,7 +49,6 @@
       box-shadow: 0 2px 0 #b8892d;
     }
   </style>
-  <!-- Optionally, pixel font via Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -60,6 +57,7 @@
     <h1>PIXEL PLATFORMER</h1>
     <button id="start-btn">START</button>
     <p style="color:#fff;font-family:'VT323',monospace;font-size:24px;">Use Arrow keys or WASD to move and jump. Avoid enemies!</p>
+    <p style="color:#fff;font-family:'VT323',monospace;font-size:20px;">Press ENTER or click START</p>
   </div>
   <script src="platformer.js"></script>
 </body>
