@@ -1,9 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Pure JavaScript Platformer</title>
+  <title>Pixel Platformer with UI, Health & Stamina</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #222; }
+    canvas { display: block; margin: 0 auto; background: #222; box-shadow: 0 0 16px #aaa; }
+    #ui-layer {
+      position: absolute;
+      left: 0; top: 0;
+      width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 10;
+    }
+    #start-screen {
+      position: absolute;
+      left: 0; top: 0;
+      width: 100vw; height: 100vh;
+      background: #222;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      pointer-events: auto;
+      z-index: 100;
+    }
+    #start-screen h1 {
+      color: #ffe066;
+      font-family: 'VT323', monospace;
+      font-size: 64px;
+      text-shadow: 0 0 8px #333;
+      margin-bottom: 10px;
+      letter-spacing: 2px;
+    }
+    #start-screen button {
+      appearance: none;
+      border: 0;
+      font-family: 'VT323', monospace;
+      font-size: 36px;
+      background: #ffe066;
+      color: #222;
+      border-radius: 8px;
+      padding: 12px 32px;
+      margin-top: 15px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #d9af37;
+      transition: background 0.2s;
+    }
+    #start-screen button:active {
+      background: #d9af37;
+      box-shadow: 0 2px 0 #b8892d;
+    }
+  </style>
+  <!-- Optionally, pixel font via Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 </head>
 <body>
+  <div id="ui-layer"></div>
+  <div id="start-screen">
+    <h1>PIXEL PLATFORMER</h1>
+    <button id="start-btn">START</button>
+    <p style="color:#fff;font-family:'VT323',monospace;font-size:24px;">Use Arrow keys or WASD to move and jump. Avoid enemies!</p>
+  </div>
   <script src="platformer.js"></script>
 </body>
 </html>
