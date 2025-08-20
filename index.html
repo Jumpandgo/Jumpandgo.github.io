@@ -1,14 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Pixel Platformer with UI, Health & Stamina</title>
+  <title>Pixel Platformer</title>
   <style>
     body { margin: 0; overflow: hidden; background: #222; }
     canvas { display: block; margin: 0 auto; background: #222; box-shadow: 0 0 16px #aaa; }
-    #ui-layer {
-      pointer-events: none;
-      z-index: 10;
-    }
+    #ui-layer { pointer-events: none; z-index: 10; }
     #start-screen {
       position: absolute;
       left: 0; top: 0;
@@ -56,7 +53,7 @@
   <div id="start-screen">
     <h1>PIXEL PLATFORMER</h1>
     <button id="start-btn">START</button>
-    <p style="color:#fff;font-family:'VT323',monospace;font-size:24px;">Use Arrow keys or WASD to move and jump. Avoid enemies!</p>
+    <p style="color:#fff;font-family:'VT323',monospace;font-size:24px;">Move: Arrow keys or WASD. Jump: Up/Space.<br>Slash: F. Pause: Top right.</p>
     <p style="color:#fff;font-family:'VT323',monospace;font-size:20px;">Press ENTER or click START</p>
   </div>
   <script src="platformer.js"></script>
