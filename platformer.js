@@ -29,7 +29,7 @@ window.onload = function () {
   const GRAVITY = 0.7;
   const FRICTION = 0.8;
   const PLAYER_SPEED = 2.5;
-  const JUMP_POWER = 7;
+  const JUMP_POWER = 10;
 
   // Key states
   const keys = {};
