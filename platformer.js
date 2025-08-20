@@ -1,5 +1,8 @@
+// Pixel Platformer - Modern Retro Edition
+// Features: 5 themed levels, start screen (starts on Enter or Start), pause button, health and stamina bars, sword attack, multiple enemy types, boss fight, checkpoints, modern retro visuals
+
 window.onload = function () {
-  // Canvas setup
+  // Canvas setup (pixel style, scaled up)
   const pixelWidth = 400, pixelHeight = 200, scale = 3;
   const canvas = document.createElement("canvas");
   canvas.width = pixelWidth;
@@ -18,7 +21,7 @@ window.onload = function () {
   uiLayer.style.left = canvas.offsetLeft + "px";
   uiLayer.style.top = canvas.offsetTop + "px";
 
-  // Pause logic
+  // Pause button
   let paused = false;
   const pauseBtn = document.createElement("button");
   pauseBtn.textContent = "⏸";
@@ -37,14 +40,14 @@ window.onload = function () {
   pauseBtn.onclick = () => { paused = !paused; };
   uiLayer.appendChild(pauseBtn);
 
-  // Constants
+  // Game constants and mechanics
   const PLAYER_MAX_HEALTH = 100;
   const PLAYER_MAX_STAMINA = 100;
-  const STAMINA_REGEN = 0.18; // slower drain
+  const STAMINA_REGEN = 0.18; // slower drain, as requested
   const STAMINA_USE = 0.25; // much slower drain
   const ENEMY_DAMAGE = 8;
-  const JUMP_POWER = 7;
-  const PLAYER_SIZE = 16; // Cube is now bigger
+  const JUMP_POWER = 7; // Set back to 7 as requested
+  const PLAYER_SIZE = 16; // Cube is bigger
   const SLASH_RANGE = 26;
   const SLASH_COOLDOWN = 35;
   const PLAYER_NORMAL_SPEED = 2.5;
@@ -53,7 +56,7 @@ window.onload = function () {
   // Key states
   const keys = {};
 
-  // Levels
+  // Level data (5 levels as requested)
   const levels = [
     // 1. Classic pixel land
     {
@@ -179,7 +182,6 @@ window.onload = function () {
       health: PLAYER_MAX_HEALTH, stamina: PLAYER_MAX_STAMINA,
       slashCooldown: 0, facing: 1, slow: false
     };
-    // Deep clone for projectile arrays
     enemies = lvl.enemies.map(e => ({...e, balls: e.balls ? [] : undefined, gunBullets: e.gunBullets ? [] : undefined, triangles: e.triangles ? [] : undefined}));
     goal = JSON.parse(JSON.stringify(lvl.goal));
     checkpoints = JSON.parse(JSON.stringify(lvl.checkpoints));
@@ -190,15 +192,29 @@ window.onload = function () {
   document.addEventListener("keydown", (e) => { keys[e.code] = true; });
   document.addEventListener("keyup", (e) => { keys[e.code] = false; });
 
-  // Start Menu logic
-  let gameStarted = false;
+  // Start screen logic
   const startScreen = document.getElementById("start-screen");
   const startBtn = document.getElementById("start-btn");
-  startBtn.onclick = function() {
-    startScreen.style.display = "none";
-    gameStarted = true;
-  };
+  let gameStarted = false;
 
+  function startGame() {
+    if (!gameStarted) {
+      startScreen.setAttribute("hidden", "hidden");
+      gameStarted = true;
+    }
+  }
+
+  // Start by button click
+  startBtn.onclick = startGame;
+
+  // Start by Enter key
+  document.addEventListener("keydown", function(e) {
+    if (!gameStarted && (e.code === "Enter" || e.key === "Enter")) {
+      startGame();
+    }
+  });
+
+  // Game state
   let win = false, death = false, levelTimer = 0;
 
   function update() {
@@ -207,13 +223,11 @@ window.onload = function () {
       requestAnimationFrame(update);
       return;
     }
-
     if (paused) {
       drawPause();
       requestAnimationFrame(update);
       return;
     }
-
     if (win || death) {
       levelTimer++;
       if (levelTimer > 60) {
@@ -245,7 +259,7 @@ window.onload = function () {
       return;
     }
 
-    // Handle movement
+    // Movement
     let moved = false;
     let speed = player.slow ? PLAYER_SLOW_SPEED : PLAYER_NORMAL_SPEED;
     if (keys["ArrowLeft"] || keys["KeyA"]) {
@@ -257,7 +271,7 @@ window.onload = function () {
       player.facing = 1;
       moved = true;
     } else {
-      player.dx *= FRICTION;
+      player.dx *= 0.8;
       if (Math.abs(player.dx) < 0.1) player.dx = 0;
     }
 
@@ -269,8 +283,6 @@ window.onload = function () {
       player.stamina += STAMINA_REGEN;
       if (player.stamina > PLAYER_MAX_STAMINA) player.stamina = PLAYER_MAX_STAMINA;
     }
-
-    // If stamina runs out, player is slow
     player.slow = player.stamina <= 0;
 
     // Jumping
@@ -289,7 +301,7 @@ window.onload = function () {
     if (player.slashCooldown > 0) player.slashCooldown--;
     if (keys["KeyF"] && player.slashCooldown <= 0) {
       player.slashCooldown = SLASH_COOLDOWN;
-      // Try to hit any enemy in range
+      // Hit any enemy in range
       for (let enemy of enemies) {
         let dist = Math.hypot(enemy.x + enemy.w/2 - (player.x+player.w/2), enemy.y + enemy.h/2 - (player.y+player.h/2));
         if (dist <= SLASH_RANGE) {
@@ -345,9 +357,7 @@ window.onload = function () {
     // Enemy logic
     for (let i = enemies.length-1; i>=0; i--) {
       let enemy = enemies[i];
-      // Remove if hit (for normal enemies)
       if (enemy.hit && (!enemy.hp || enemy.hp <= 0)) { enemies.splice(i,1); continue; }
-      // Level 2: circles follow player
       if (enemy.type === "circle" && enemy.follow) {
         let px = player.x + player.w/2, py = player.y + player.h/2;
         let ex = enemy.x + enemy.w/2, ey = enemy.y + enemy.h/2;
@@ -361,7 +371,6 @@ window.onload = function () {
         enemy.x += enemy.dx * enemy.dir;
         if (enemy.x < 0) { enemy.x = 0; enemy.dir *= -1; }
         if (enemy.x + enemy.w > pixelWidth) { enemy.x = pixelWidth - enemy.w; enemy.dir *= -1; }
-        // Stay on platform
         let onPlat = platforms.find(p => (
           enemy.x + enemy.w/2 > p.x && enemy.x + enemy.w/2 < p.x + p.w &&
           enemy.y + enemy.h === p.y
@@ -382,18 +391,15 @@ window.onload = function () {
           enemy.balls.push({x: enemy.x+enemy.w/2, y: enemy.y+enemy.h/2, dx: Math.cos(angle)*2.8, dy: Math.sin(angle)*2.8, radius: 5});
           enemy.cooldown = 55;
         } else enemy.cooldown--;
-        // Move balls
         for (let j=enemy.balls.length-1;j>=0;j--) {
           let ball = enemy.balls[j];
           ball.x += ball.dx; ball.y += ball.dy;
-          // Hit player
           if (rectCollide({x: ball.x-ball.radius, y: ball.y-ball.radius, w: ball.radius*2, h: ball.radius*2}, player)) {
             player.health -= ENEMY_DAMAGE;
             if (player.health <= 0) { death = true; levelTimer = 0; }
             enemy.balls.splice(j,1);
             continue;
           }
-          // Remove off screen
           if (ball.x < 0 || ball.x > pixelWidth || ball.y < 0 || ball.y > pixelHeight)
             enemy.balls.splice(j,1);
         }
@@ -406,7 +412,6 @@ window.onload = function () {
           enemy.triangles.push({x: enemy.x+enemy.w/2, y: enemy.y+enemy.h/2, dx: Math.cos(angle)*3.1, dy: Math.sin(angle)*3.1, size: 10});
           enemy.cooldown = 65;
         } else enemy.cooldown--;
-        // Move triangles
         for (let j=enemy.triangles.length-1;j>=0;j--) {
           let tri = enemy.triangles[j];
           tri.x += tri.dx; tri.y += tri.dy;
@@ -420,7 +425,6 @@ window.onload = function () {
             enemy.triangles.splice(j,1);
         }
       } else if (enemy.type === "boss") {
-        // Boss stays
         if (!enemy.gunCooldown || enemy.gunCooldown <= 0) {
           let angle = Math.atan2(player.y+player.h/2-enemy.y-enemy.h/2, player.x+player.w/2-enemy.x-enemy.w/2);
           enemy.gunBullets.push({x: enemy.x+enemy.w/2, y: enemy.y+enemy.h/2, dx: Math.cos(angle)*3.5, dy: Math.sin(angle)*3.5, radius: 7});
@@ -513,7 +517,6 @@ window.onload = function () {
 
   function drawEnemy(x, y, enemy) {
     if (enemy.type === "triangle") {
-      // Retro triangle with angry face
       let grad = ctx.createLinearGradient(x, y, x+enemy.w, y+enemy.h);
       grad.addColorStop(0, "#ff6f61");
       grad.addColorStop(1, "#b71c1c");
@@ -527,13 +530,11 @@ window.onload = function () {
       ctx.strokeStyle = "#222";
       ctx.lineWidth = 2;
       ctx.stroke();
-      // Face
       ctx.fillStyle = "#222";
       ctx.fillRect(x + enemy.w/2 - 4, y + 6, 2, 3);
       ctx.fillRect(x + enemy.w/2 + 2, y + 6, 2, 3);
       ctx.fillRect(x + enemy.w/2 - 3, y + 12, 6, 2);
     } else if (enemy.type === "circle") {
-      // Retro glossy circle
       ctx.save();
       ctx.shadowColor = "#222";
       ctx.shadowBlur = 3;
@@ -545,15 +546,12 @@ window.onload = function () {
       ctx.strokeStyle = "#333";
       ctx.lineWidth = 2;
       ctx.stroke();
-      // Eyes
       ctx.fillStyle = "#222";
       ctx.fillRect(x + enemy.w/2 - 4, y + enemy.h/2 - 2, 2, 2);
       ctx.fillRect(x + enemy.w/2 + 2, y + enemy.h/2 - 2, 2, 2);
       ctx.restore();
     } else if (enemy.type === "shooter") {
-      // Retro shooter triangle
       drawEnemy(x, y, {type:"triangle",w:enemy.w,h:enemy.h});
-      // Balls
       for (let ball of enemy.balls) {
         ctx.beginPath();
         ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2);
@@ -564,7 +562,6 @@ window.onload = function () {
       }
     } else if (enemy.type === "thrower") {
       drawEnemy(x, y, {type:"triangle",w:enemy.w,h:enemy.h});
-      // Triangles
       for (let tri of enemy.triangles) {
         ctx.save();
         ctx.translate(tri.x, tri.y);
@@ -581,21 +578,17 @@ window.onload = function () {
         ctx.restore();
       }
     } else if (enemy.type === "boss") {
-      // Big block with wings + gun
       ctx.save();
       ctx.shadowColor = "#fff";
       ctx.shadowBlur = 10;
-      // Body
       ctx.fillStyle = "#fafafa";
       ctx.fillRect(x, y, enemy.w, enemy.h);
       ctx.strokeStyle = "#222";
       ctx.lineWidth = 3;
       ctx.strokeRect(x, y, enemy.w, enemy.h);
-      // Eyes
       ctx.fillStyle = "#222";
       ctx.fillRect(x + enemy.w/2 - 8, y + 12, 4, 4);
       ctx.fillRect(x + enemy.w/2 + 4, y + 12, 4, 4);
-      // Wings
       ctx.beginPath();
       ctx.moveTo(x-10, y+8);
       ctx.lineTo(x-20, y+enemy.h/2);
@@ -609,11 +602,9 @@ window.onload = function () {
       ctx.lineTo(x+enemy.w+10, y+enemy.h-8);
       ctx.closePath();
       ctx.fill();
-      // Gun
       ctx.fillStyle = "#333";
       ctx.fillRect(x+enemy.w/2-4, y+enemy.h-4, 8, 8);
       ctx.restore();
-      // Bullets
       for (let bullet of enemy.gunBullets) {
         ctx.beginPath();
         ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI*2);
@@ -642,13 +633,10 @@ window.onload = function () {
   }
 
   function drawBeachBG() {
-    // Sky
     ctx.fillStyle = "#90e0ef";
     ctx.fillRect(0, 0, pixelWidth, pixelHeight);
-    // Sea
     ctx.fillStyle = "#48cae4";
     ctx.fillRect(0, pixelHeight-60, pixelWidth, 40);
-    // Sand
     ctx.fillStyle = "#ffecb3";
     ctx.fillRect(0, pixelHeight-20, pixelWidth, 20);
   }
@@ -665,7 +653,6 @@ window.onload = function () {
     ctx.fillRect(0, 0, pixelWidth, pixelHeight);
     drawPixelMountain(0, 150, pixelWidth, 40, "#ffcc80","#ff7043");
     drawPixelMountain(0, 170, pixelWidth, 20, "#ffd54f","#ff7043");
-    // Lava cracks
     for (let i=0;i<12;i++) {
       ctx.strokeStyle = "#b71c1c";
       ctx.beginPath();
@@ -680,7 +667,6 @@ window.onload = function () {
     ctx.fillRect(0, 0, pixelWidth, pixelHeight);
     drawPixelMountain(0, 130, pixelWidth, 60, "#fff","#e3f2fd");
     drawPixelMountain(0, 160, pixelWidth, 30, "#e1bee7","#e3f2fd");
-    // Clouds
     for (let i=0;i<7;i++) {
       ctx.beginPath();
       ctx.arc(50+40*i, 40+10*(i%3), 18, 0, Math.PI*2);
@@ -762,7 +748,6 @@ window.onload = function () {
   }
 
   function draw() {
-    // Background
     let lvl = levels[currentLevel];
     if (lvl.bg === "mountains") drawPixelMountain(0, 130, pixelWidth, 60, "#a1c4fd","#c2e9fb");
     else if (lvl.bg === "beach") drawBeachBG();
@@ -771,7 +756,6 @@ window.onload = function () {
     else if (lvl.bg === "heaven") drawHeavenBG();
     else ctx.fillStyle = "#222", ctx.fillRect(0,0,pixelWidth,pixelHeight);
 
-    // Platforms
     for (let plat of platforms) {
       let grad = ctx.createLinearGradient(plat.x, plat.y, plat.x, plat.y+plat.h);
       grad.addColorStop(0, "#7e6a52");
@@ -783,30 +767,18 @@ window.onload = function () {
       ctx.fillRect(plat.x, plat.y, plat.w, 4);
       ctx.globalAlpha = 1;
     }
-
-    // Goal
     drawGoal(goal);
-
-    // Checkpoints
     for (let cp of checkpoints) drawCheckpoint(cp, activeCheckpoint && cp.x === activeCheckpoint.x && cp.y === activeCheckpoint.y);
-
-    // Player
     drawPixelBlock(Math.round(player.x), Math.round(player.y), PLAYER_SIZE, playerArt());
-
-    // Enemies
     for (let enemy of enemies) drawEnemy(Math.round(enemy.x), Math.round(enemy.y), enemy);
-
-    // Level info
     ctx.fillStyle = "#fff";
     ctx.font = "10px VT323, monospace";
     ctx.fillText("Level: " + (currentLevel + 1) + "/" + levels.length, 320, 18);
-
     if (activeCheckpoint) {
       ctx.fillStyle = "#00ff00";
       ctx.font = "10px VT323, monospace";
       ctx.fillText("Checkpoint!", 5, 42);
     }
-
     if (win) {
       ctx.fillStyle = "#ffe066";
       ctx.font = "20px VT323, monospace";
@@ -817,7 +789,6 @@ window.onload = function () {
       ctx.font = "20px VT323, monospace";
       ctx.fillText("TRY AGAIN!", 145, 90);
     }
-
     drawBars();
   }
 
@@ -845,10 +816,9 @@ window.onload = function () {
     ctx.fillText("PIXEL PLATFORMER", 45, 80);
     ctx.font = "15px VT323, monospace";
     ctx.fillStyle = "#fff";
-    ctx.fillText("Press START to play", 120, 120);
-    ctx.fillText("Arrow keys/WASD to move & jump", 110, 140);
-    ctx.fillText("F to slash sword", 140, 160);
-    ctx.fillText("Pause: Top right", 140, 180);
+    ctx.fillText("Press START or ENTER to play", 100, 120);
+    ctx.fillText("Move: Arrow keys/WASD | Jump: Up/Space", 65, 140);
+    ctx.fillText("Slash: F | Pause: Top right", 120, 160);
   }
 
   function drawPause() {
